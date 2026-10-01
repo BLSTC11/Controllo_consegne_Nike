@@ -20,9 +20,9 @@
   // ---------------------------------------------------------------------------
   // Formattazione
   // ---------------------------------------------------------------------------
-  const fInt = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0 });
-  const fEur = new Intl.NumberFormat('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fPct = new Intl.NumberFormat('it-IT', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fInt = new Intl.NumberFormat('bg-BG', { maximumFractionDigits: 0, useGrouping: 'always' });
+  const fEur = new Intl.NumberFormat('bg-BG', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' });
+  const fPct = new Intl.NumberFormat('bg-BG', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   function fmt(v, type) {
@@ -34,10 +34,12 @@
       case 'price': return fEur.format(v);
       case 'diff': return (v > 0 ? '+' : '') + fEur.format(v);
       case 'pct': return fPct.format(v);
-      case 'bool': return v ? 'Sì' : '';
+      case 'bool': return v ? 'Да' : '';
       default: return esc(v);
     }
   }
+
+  const STATUS_CLASS = { 'Предстои доставка': 'b-da-consegnare', 'Частично': 'b-parziale', 'Изпълнено': 'b-completo', 'Излишък': 'b-eccedenza' };
 
   // ---------------------------------------------------------------------------
   // Memoria locale (IndexedDB): i file restano sul computer dell'utente
@@ -106,7 +108,7 @@
     const buffer = await file.arrayBuffer();
     if (state.order) await dbDel(state.order.id);
     state.order = loadOrder({ id: newId(), name: file.name, buffer, overrides: {}, added: Date.now() });
-    if (!state.order.table) message('error', `Nel file "${esc(file.name)}" non trovo le colonne EAN e quantità. È il file di conferma giusto?`);
+    if (!state.order.table) message('error', `Във файла "${esc(file.name)}" не намирам колоните EAN и количество. Това ли е правилният файл с потвърждението?`);
     await persist(state.order, 'order');
     refresh();
   }
@@ -118,10 +120,10 @@
       if (existing) {
         await dbDel(existing.id);
         state.deliveries = state.deliveries.filter(d => d !== existing);
-        message('info', `"${esc(file.name)}" era già caricato: l'ho sostituito con la nuova versione.`);
+        message('info', `"${esc(file.name)}" вече беше зареден: заменен е с новата версия.`);
       }
       const f = loadDelivery({ id: newId(), name: file.name, buffer, overrides: {}, added: Date.now() });
-      if (!f.table) message('error', `Nel file "${esc(file.name)}" non trovo le colonne EAN e quantità.`);
+      if (!f.table) message('error', `Във файла "${esc(file.name)}" не намирам колоните EAN и количество.`);
       state.deliveries.push(f);
       await persist(f, 'delivery');
     }
@@ -148,7 +150,7 @@
   function message(kind, html) {
     const el = document.createElement('div');
     el.className = 'msg msg-' + kind;
-    el.innerHTML = `<span>${html}</span><button class="link" aria-label="Chiudi">×</button>`;
+    el.innerHTML = `<span>${html}</span><button class="link" aria-label="Затвори">×</button>`;
     el.querySelector('button').onclick = () => el.remove();
     $('#messages').appendChild(el);
   }
@@ -161,22 +163,22 @@
     const t = f.table;
     const found = Object.keys(fields).filter(k => t.map[k] >= 0).length;
     const missingReq = Object.keys(fields).filter(k => fields[k].required && t.map[k] < 0);
-    const opts = sel => ['<option value="-1">— non presente —</option>']
-      .concat(t.headers.map((h, i) => `<option value="${i}"${i === sel ? ' selected' : ''}>${esc(h || '(colonna ' + (i + 1) + ')')}</option>`)).join('');
+    const opts = sel => ['<option value="-1">— липсва —</option>']
+      .concat(t.headers.map((h, i) => `<option value="${i}"${i === sel ? ' selected' : ''}>${esc(h || '(колона ' + (i + 1) + ')')}</option>`)).join('');
     const rows = Object.keys(fields).map(k => `
       <label class="map-row${fields[k].required && t.map[k] < 0 ? ' map-missing' : ''}">
         <span>${esc(fields[k].label)}${fields[k].required ? ' *' : ''}</span>
         <select data-role="${role}" data-id="${f.id}" data-field="${k}">${opts(t.map[k])}</select>
       </label>`).join('');
     return `<details class="mapping"${missingReq.length ? ' open' : ''}>
-      <summary>Colonne riconosciute: ${found} di ${Object.keys(fields).length} (foglio "${esc(t.sheet)}", intestazioni alla riga ${t.headerRow + 1})</summary>
+      <summary>Разпознати колони: ${found} от ${Object.keys(fields).length} (лист "${esc(t.sheet)}", заглавия на ред ${t.headerRow + 1})</summary>
       <div class="map-grid">${rows}</div>
     </details>`;
   }
 
   function seasonsText(rawSeasons) {
     const parts = Object.keys(rawSeasons).map(r => rawSeasons[r] && rawSeasons[r] !== r ? `${esc(r)} → ${esc(rawSeasons[r])}` : esc(r));
-    return parts.length ? parts.join(', ') : 'non indicata';
+    return parts.length ? parts.join(', ') : 'не е посочен';
   }
 
   function renderUploads() {
@@ -185,27 +187,27 @@
     $('#drop-order').classList.toggle('compact', !!o);
     if (!o) { $('#order-info').innerHTML = ''; }
     else if (!o.table) {
-      $('#order-info').innerHTML = `<div class="file bad"><strong>${esc(o.name)}</strong><span>colonne EAN e quantità non trovate</span></div>`;
+      $('#order-info').innerHTML = `<div class="file bad"><strong>${esc(o.name)}</strong><span>не са намерени колоните EAN и количество</span></div>`;
     } else {
       const L = o.parsed.lines;
       const qty = L.reduce((s, l) => s + l.qty, 0), val = L.reduce((s, l) => s + l.qty * l.price, 0);
       const pos = Array.from(new Set(L.map(l => l.po).filter(Boolean)));
       $('#order-info').innerHTML = `<div class="file">
         <div class="file-name"><strong>${esc(o.name)}</strong></div>
-        <div class="file-stats">${fInt.format(L.length)} righe · ${fInt.format(qty)} pz · ${fEur.format(val)} € · Stagione: ${seasonsText(o.parsed.rawSeasons)}${pos.length ? ' · Ordini: ' + pos.map(esc).join(', ') : ''}</div>
+        <div class="file-stats">${fInt.format(L.length)} реда · ${fInt.format(qty)} бр. · ${fEur.format(val)} € · Сезон: ${seasonsText(o.parsed.rawSeasons)}${pos.length ? ' · Поръчки: ' + pos.map(esc).join(', ') : ''}</div>
         ${mappingHtml(o, E.ORDER_FIELDS, 'order')}
       </div>`;
     }
 
     $('#clear-deliveries').hidden = !state.deliveries.length;
     $('#delivery-list').innerHTML = state.deliveries.map(d => {
-      if (!d.table) return `<div class="file bad"><div class="file-name"><strong>${esc(d.name)}</strong><button class="link" data-remove="${d.id}">Rimuovi</button></div><div class="file-stats">colonne EAN e quantità non trovate</div></div>`;
+      if (!d.table) return `<div class="file bad"><div class="file-name"><strong>${esc(d.name)}</strong><button class="link" data-remove="${d.id}">Премахни</button></div><div class="file-stats">не са намерени колоните EAN и количество</div></div>`;
       const L = d.parsed.lines;
       const qty = L.reduce((s, l) => s + l.qty, 0);
       const trucks = new Set(L.map(l => l.truck).filter(Boolean)).size;
       return `<div class="file">
-        <div class="file-name"><strong>${esc(d.name)}</strong><button class="link" data-remove="${d.id}">Rimuovi</button></div>
-        <div class="file-stats">${fInt.format(L.length)} righe · ${fInt.format(qty)} pz${trucks ? ' · ' + trucks + (trucks === 1 ? ' camion' : ' camion') : ''} · Stagione: ${seasonsText(d.parsed.rawSeasons)}</div>
+        <div class="file-name"><strong>${esc(d.name)}</strong><button class="link" data-remove="${d.id}">Премахни</button></div>
+        <div class="file-stats">${fInt.format(L.length)} реда · ${fInt.format(qty)} бр.${trucks ? ' · ' + trucks + (trucks === 1 ? ' камион' : ' камиона') : ''} · Сезон: ${seasonsText(d.parsed.rawSeasons)}</div>
         ${mappingHtml(d, E.DELIVERY_FIELDS, 'delivery')}
       </div>`;
     }).join('');
@@ -257,53 +259,53 @@
   const C = (key, label, type, extra) => Object.assign({ key, label, type: type || 'text' }, extra);
 
   const groupCols = first => first.concat([
-    C('qty', 'Pz ordinati', 'int'), C('onOrder', 'Pz consegnati', 'int'), C('residual', 'Pz residui', 'int'), C('excess', 'Pz eccedenza', 'int'),
-    C('orderValue', 'Valore ordinato €', 'eur'), C('onOrderValue', 'Valore consegnato €', 'eur'), C('residualValue', 'Valore residuo €', 'eur'),
-    C('pct', '% consegnato', 'pct', { bar: true }),
+    C('qty', 'Бр. поръчани', 'int'), C('onOrder', 'Бр. доставени', 'int'), C('residual', 'Бр. остатък', 'int'), C('excess', 'Бр. излишък', 'int'),
+    C('orderValue', 'Стойност поръчано €', 'eur'), C('onOrderValue', 'Стойност доставено €', 'eur'), C('residualValue', 'Стойност остатък €', 'eur'),
+    C('pct', '% доставено', 'pct', { bar: true }),
   ]);
 
   const COLS = {
-    season: groupCols([C('season', 'Stagione')]),
-    bu: groupCols([C('season', 'Stagione'), C('bu', 'Reparto')]),
-    po: groupCols([C('season', 'Stagione'), C('po', "N. ordine")]),
-    gender: groupCols([C('season', 'Stagione'), C('gender', 'Genere')]),
+    season: groupCols([C('season', 'Сезон')]),
+    bu: groupCols([C('season', 'Сезон'), C('bu', 'Отдел')]),
+    po: groupCols([C('season', 'Сезон'), C('po', '№ поръчка')]),
+    gender: groupCols([C('season', 'Сезон'), C('gender', 'Пол')]),
     article: [
-      C('season', 'Stagione'), C('bu', 'Reparto'), C('article', 'Articolo'), C('name', 'Descrizione'), C('color', 'Colore'),
-      C('price', 'Prezzo FPC €', 'price'), C('qty', 'Pz ordinati', 'int'), C('onOrder', 'Pz consegnati', 'int'), C('residual', 'Pz residui', 'int'),
-      C('excess', 'Pz eccedenza', 'int'), C('orderValue', 'Valore ordinato €', 'eur'), C('residualValue', 'Valore residuo €', 'eur'),
-      C('sizesTxt', 'Taglie complete'), C('pct', '% consegnato', 'pct', { bar: true }),
+      C('season', 'Сезон'), C('bu', 'Отдел'), C('article', 'Артикул'), C('name', 'Описание'), C('color', 'Цвят'),
+      C('price', 'Цена FPC €', 'price'), C('qty', 'Бр. поръчани', 'int'), C('onOrder', 'Бр. доставени', 'int'), C('residual', 'Бр. остатък', 'int'),
+      C('excess', 'Бр. излишък', 'int'), C('orderValue', 'Стойност поръчано €', 'eur'), C('residualValue', 'Стойност остатък €', 'eur'),
+      C('sizesTxt', 'Изпълнени размери'), C('pct', '% доставено', 'pct', { bar: true }),
     ],
     ean: [
-      C('status', 'Stato', 'status'), C('season', 'Stagione'), C('po', 'N. ordine'), C('bu', 'Reparto'), C('article', 'Articolo'), C('name', 'Descrizione'),
-      C('color', 'Colore'), C('sizeUS', 'Taglia US'), C('sizeEU', 'Taglia EU'), C('ean', 'EAN'), C('price', 'Prezzo FPC €', 'price'),
-      C('qty', 'Pz ordinati', 'int'), C('delivered', 'Pz consegnati', 'int'), C('residual', 'Pz residui', 'int'), C('excess', 'Pz eccedenza', 'int'),
-      C('orderValue', 'Valore ordinato €', 'eur'), C('onOrderValue', 'Valore consegnato €', 'eur'), C('residualValue', 'Valore residuo €', 'eur'),
-      C('deliveredNet', 'Valore netto fatturato €', 'eur', { net: true }), C('files', 'File consegna'),
+      C('status', 'Статус', 'status'), C('season', 'Сезон'), C('po', '№ поръчка'), C('bu', 'Отдел'), C('article', 'Артикул'), C('name', 'Описание'),
+      C('color', 'Цвят'), C('sizeUS', 'Размер US'), C('sizeEU', 'Размер EU'), C('ean', 'EAN'), C('price', 'Цена FPC €', 'price'),
+      C('qty', 'Бр. поръчани', 'int'), C('delivered', 'Бр. доставени', 'int'), C('residual', 'Бр. остатък', 'int'), C('excess', 'Бр. излишък', 'int'),
+      C('orderValue', 'Стойност поръчано €', 'eur'), C('onOrderValue', 'Стойност доставено €', 'eur'), C('residualValue', 'Стойност остатък €', 'eur'),
+      C('deliveredNet', 'Нетна фактурирана стойност €', 'eur', { net: true }), C('files', 'Файл доставка'),
     ],
     excess: [
-      C('season', 'Stagione'), C('po', 'N. ordine'), C('bu', 'Reparto'), C('article', 'Articolo'), C('name', 'Descrizione'), C('color', 'Colore'),
-      C('sizeUS', 'Taglia US'), C('ean', 'EAN'), C('price', 'Prezzo FPC €', 'price'), C('qty', 'Pz ordinati', 'int'), C('delivered', 'Pz consegnati', 'int'),
-      C('excess', 'Pz eccedenza', 'int'), C('excessValue', 'Valore eccedenza €', 'eur'), C('files', 'File consegna'),
+      C('season', 'Сезон'), C('po', '№ поръчка'), C('bu', 'Отдел'), C('article', 'Артикул'), C('name', 'Описание'), C('color', 'Цвят'),
+      C('sizeUS', 'Размер US'), C('ean', 'EAN'), C('price', 'Цена FPC €', 'price'), C('qty', 'Бр. поръчани', 'int'), C('delivered', 'Бр. доставени', 'int'),
+      C('excess', 'Бр. излишък', 'int'), C('excessValue', 'Стойност излишък €', 'eur'), C('files', 'Файл доставка'),
     ],
     nonOrdered: [
-      C('season', 'Stagione consegna'), C('po', 'N. ordine consegna'), C('bu', 'Reparto'), C('article', 'Articolo'), C('name', 'Descrizione'), C('size', 'Taglia'),
-      C('ean', 'EAN'), C('prices', 'Prezzo FPC €', 'price'), C('qty', 'Pz consegnati', 'int'), C('fpcValue', 'Valore FPC €', 'eur'),
-      C('netValue', 'Valore netto €', 'eur', { net: true }), C('trucks', 'Truck'), C('files', 'File consegna'),
+      C('season', 'Сезон доставка'), C('po', '№ поръчка доставка'), C('bu', 'Отдел'), C('article', 'Артикул'), C('name', 'Описание'), C('size', 'Размер'),
+      C('ean', 'EAN'), C('prices', 'Цена FPC €', 'price'), C('qty', 'Бр. доставени', 'int'), C('fpcValue', 'Стойност FPC €', 'eur'),
+      C('netValue', 'Нетна стойност €', 'eur', { net: true }), C('trucks', 'Камион'), C('files', 'Файл доставка'),
     ],
     otherSeason: [
-      C('season', 'Stagione consegna'), C('orderSeason', 'Stagione ordine'), C('po', 'N. ordine consegna'), C('bu', 'Reparto'), C('article', 'Articolo'),
-      C('name', 'Descrizione'), C('color', 'Colore'), C('size', 'Taglia'), C('ean', 'EAN'), C('orderQty', 'Pz ordinati', 'int'), C('qty', 'Pz consegnati', 'int'),
-      C('fpcValue', 'Valore FPC €', 'eur'), C('trucks', 'Truck'), C('files', 'File consegna'),
+      C('season', 'Сезон доставка'), C('orderSeason', 'Сезон поръчка'), C('po', '№ поръчка доставка'), C('bu', 'Отдел'), C('article', 'Артикул'),
+      C('name', 'Описание'), C('color', 'Цвят'), C('size', 'Размер'), C('ean', 'EAN'), C('orderQty', 'Бр. поръчани', 'int'), C('qty', 'Бр. доставени', 'int'),
+      C('fpcValue', 'Стойност FPC €', 'eur'), C('trucks', 'Камион'), C('files', 'Файл доставка'),
     ],
     differences: [
-      C('season', 'Stagione'), C('po', 'N. ordine'), C('delPO', 'N. ordine consegna'), C('poDiff', 'Ordine diverso', 'bool'), C('bu', 'Reparto'),
-      C('article', 'Articolo'), C('name', 'Descrizione'), C('sizeUS', 'Taglia US'), C('ean', 'EAN'), C('price', 'Prezzo FPC ordine €', 'price'),
-      C('delPrice', 'Prezzo FPC consegna €', 'price'), C('priceDiff', 'Differenza €', 'diff'), C('delivered', 'Pz consegnati', 'int'), C('files', 'File consegna'),
+      C('season', 'Сезон'), C('po', '№ поръчка'), C('delPO', '№ поръчка доставка'), C('poDiff', 'Различна поръчка', 'bool'), C('bu', 'Отдел'),
+      C('article', 'Артикул'), C('name', 'Описание'), C('sizeUS', 'Размер US'), C('ean', 'EAN'), C('price', 'Цена FPC поръчка €', 'price'),
+      C('delPrice', 'Цена FPC доставка €', 'price'), C('priceDiff', 'Разлика €', 'diff'), C('delivered', 'Бр. доставени', 'int'), C('files', 'Файл доставка'),
     ],
     shipments: [
-      C('file', 'File consegna'), C('season', 'Stagione'), C('packing', 'Packing list'), C('truck', 'Truck'), C('po', 'N. ordine'), C('lines', 'Righe', 'int'),
-      C('qty', 'Pezzi', 'int'), C('fpcValue', 'Valore FPC €', 'eur'), C('netValue', 'Valore netto €', 'eur', { net: true }),
-      C('onOrder', 'Pz sull\'ordine', 'int'), C('notOrdered', 'Pz non ordinati', 'int'), C('otherSeason', 'Pz altra stagione', 'int'),
+      C('file', 'Файл доставка'), C('season', 'Сезон'), C('packing', 'Опаковъчен лист'), C('truck', 'Камион'), C('po', '№ поръчка'), C('lines', 'Редове', 'int'),
+      C('qty', 'Бройки', 'int'), C('fpcValue', 'Стойност FPC €', 'eur'), C('netValue', 'Нетна стойност €', 'eur', { net: true }),
+      C('onOrder', 'Бр. по поръчката', 'int'), C('notOrdered', 'Бр. непоръчани', 'int'), C('otherSeason', 'Бр. друг сезон', 'int'),
     ],
   };
 
@@ -359,7 +361,7 @@
     const body = shown.map(r => '<tr>' + columns.map(c => {
       const v = r[c.key];
       const num = ['int', 'eur', 'price', 'pct', 'diff'].includes(c.type);
-      if (c.type === 'status') return `<td><span class="badge b-${esc(String(v).toLowerCase().replace(/\s+/g, '-'))}">${esc(v)}</span></td>`;
+      if (c.type === 'status') return `<td><span class="badge ${STATUS_CLASS[v] || ''}">${esc(v)}</span></td>`;
       if (c.bar) return `<td class="num"><span class="pctbar"><span style="width:${Math.min(100, Math.max(0, (v || 0) * 100)).toFixed(1)}%"></span></span>${fmt(v, 'pct')}</td>`;
       const cls = (num ? 'num' : '') + (c.type === 'diff' && v ? (v > 0 ? ' neg' : ' pos') : '');
       return `<td class="${cls}">${fmt(v, c.type)}</td>`;
@@ -367,7 +369,7 @@
     let foot = '';
     if (opts.totals && rows.length > 1) {
       foot = '<tfoot><tr>' + columns.map((c, i) => {
-        if (i === 0) return '<td>Totale</td>';
+        if (i === 0) return '<td>Общо</td>';
         if (['int', 'eur'].includes(c.type)) return `<td class="num">${fmt(sumBy(rows, r => r[c.key] || 0), c.type)}</td>`;
         if (c.bar) {
           const ov = sumBy(rows, r => r.orderValue || 0), dv = sumBy(rows, r => r.onOrderValue || 0);
@@ -376,7 +378,7 @@
         return '<td></td>';
       }).join('') + '</tr></tfoot>';
     }
-    const more = rows.length > shown.length ? `<p class="more">Mostrate ${fInt.format(shown.length)} righe su ${fInt.format(rows.length)}: usa la ricerca o esporta in Excel per vederle tutte.</p>` : '';
+    const more = rows.length > shown.length ? `<p class="more">Показани са ${fInt.format(shown.length)} от ${fInt.format(rows.length)} реда: използвайте търсенето или експорта в Excel, за да видите всички.</p>` : '';
     return `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot}</table></div>${more}`;
   }
 
@@ -394,20 +396,20 @@
   // Risultati
   // ---------------------------------------------------------------------------
   const TABS = [
-    { id: 'riepilogo', label: 'Riepilogo', group: 'riepilogo' },
-    { id: 'consegne', label: 'Consegne', group: 'consegne', count: v => v.shipments.length },
-    { id: 'eccedenze', label: 'Eccedenze', group: 'anomalie', count: v => v.excess.length, alert: true },
-    { id: 'nonordinato', label: 'Non ordinato', group: 'anomalie', count: v => v.nonOrdered.length, alert: true },
-    { id: 'altrastagione', label: 'Altra stagione', group: 'anomalie', count: v => v.otherSeason.length, alert: true },
-    { id: 'differenze', label: 'Differenze prezzo/ordine', group: 'anomalie', count: v => v.differences.length, alert: true },
-    { id: 'articoli', label: 'Per articolo', group: 'articoli' },
-    { id: 'ean', label: 'Dettaglio EAN', group: 'ean' },
+    { id: 'riepilogo', label: 'Обобщение', group: 'riepilogo' },
+    { id: 'consegne', label: 'Доставки', group: 'consegne', count: v => v.shipments.length },
+    { id: 'eccedenze', label: 'Излишъци', group: 'anomalie', count: v => v.excess.length, alert: true },
+    { id: 'nonordinato', label: 'Непоръчано', group: 'anomalie', count: v => v.nonOrdered.length, alert: true },
+    { id: 'altrastagione', label: 'Друг сезон', group: 'anomalie', count: v => v.otherSeason.length, alert: true },
+    { id: 'differenze', label: 'Разлики цена/поръчка', group: 'anomalie', count: v => v.differences.length, alert: true },
+    { id: 'articoli', label: 'По артикул', group: 'articoli' },
+    { id: 'ean', label: 'Детайли по EAN', group: 'ean' },
   ];
 
   function kpi(label, q, val, pctOf, cls, note) {
     return `<div class="kpi ${cls || ''}">
       <div class="kpi-label">${label}</div>
-      <div class="kpi-val">${fInt.format(q)} <small>pz</small></div>
+      <div class="kpi-val">${fInt.format(q)} <small>бр.</small></div>
       <div class="kpi-sub">${fEur.format(val)} €${pctOf ? ' · ' + fPct.format(pctOf ? val / pctOf : 0) : ''}</div>
       ${note ? `<div class="kpi-note">${note}</div>` : ''}
     </div>`;
@@ -418,19 +420,19 @@
     const pct = ov ? t.onOrder.value / ov : 0;
     $('#kpis').innerHTML = `
       <div class="progress-card">
-        <div class="progress-head"><span>Avanzamento consegne (valore)</span><strong>${fPct.format(pct)}</strong></div>
+        <div class="progress-head"><span>Изпълнение на доставките (стойност)</span><strong>${fPct.format(pct)}</strong></div>
         <div class="progress"><span style="width:${(pct * 100).toFixed(1)}%"></span></div>
-        <div class="progress-foot">Consegnato ${fEur.format(t.onOrder.value)} € su ${fEur.format(ov)} € ordinati · in pezzi ${fPct.format(t.ordered.qty ? t.onOrder.qty / t.ordered.qty : 0)}</div>
+        <div class="progress-foot">Доставено ${fEur.format(t.onOrder.value)} € от ${fEur.format(ov)} € поръчани · в бройки ${fPct.format(t.ordered.qty ? t.onOrder.qty / t.ordered.qty : 0)}</div>
       </div>
       <div class="kpi-grid">
-        ${kpi('Ordinato', t.ordered.qty, t.ordered.value, 0, 'k-ord')}
-        ${kpi('Consegnato sull\'ordine', t.onOrder.qty, t.onOrder.value, ov, 'k-ok')}
-        ${kpi('Da consegnare', t.residual.qty, t.residual.value, ov, 'k-res')}
-        ${kpi('Consegnato in eccedenza', t.excess.qty, t.excess.value, 0, t.excess.qty ? 'k-bad' : 'k-zero')}
-        ${kpi('Consegnato non ordinato', t.nonOrdered.qty, t.nonOrdered.value, 0, t.nonOrdered.qty ? 'k-bad' : 'k-zero')}
-        ${kpi('Consegnato di altra stagione', t.otherSeason.qty, t.otherSeason.value, 0, t.otherSeason.qty ? 'k-bad' : 'k-zero')}
+        ${kpi('Поръчано', t.ordered.qty, t.ordered.value, 0, 'k-ord')}
+        ${kpi('Доставено по поръчката', t.onOrder.qty, t.onOrder.value, ov, 'k-ok')}
+        ${kpi('Остава за доставка', t.residual.qty, t.residual.value, ov, 'k-res')}
+        ${kpi('Доставено в излишък', t.excess.qty, t.excess.value, 0, t.excess.qty ? 'k-bad' : 'k-zero')}
+        ${kpi('Доставено непоръчано', t.nonOrdered.qty, t.nonOrdered.value, 0, t.nonOrdered.qty ? 'k-bad' : 'k-zero')}
+        ${kpi('Доставено от друг сезон', t.otherSeason.qty, t.otherSeason.value, 0, t.otherSeason.qty ? 'k-bad' : 'k-zero')}
       </div>
-      <p class="kpi-foot">Totale ricevuto in tutti i file: ${fInt.format(t.all.qty)} pz, ${fEur.format(t.all.value)} € a prezzo FPC${v.hasNet ? `, ${fEur.format(t.all.net)} € netto fatturato` : ''}. Valori a prezzo FPC netto IVA dell'ordine; abbinamento per EAN e stagione.</p>`;
+      <p class="kpi-foot">Общо получено във всички файлове: ${fInt.format(t.all.qty)} бр., ${fEur.format(t.all.value)} € по цена FPC${v.hasNet ? `, ${fEur.format(t.all.net)} € нетно фактурирано` : ''}. Стойности по цена FPC без ДДС от поръчката; съпоставяне по EAN и сезон.</p>`;
   }
 
   function panel(id, group, title, inner, tools) {
@@ -441,7 +443,7 @@
     </section>`;
   }
 
-  const searchBox = (name, ph) => `<input type="search" class="search" data-search="${name}" placeholder="${ph || 'Cerca articolo, EAN, descrizione…'}" value="${esc(state.ui.search[name] || '')}">`;
+  const searchBox = (name, ph) => `<input type="search" class="search" data-search="${name}" placeholder="${ph || 'Търсене по артикул, EAN, описание…'}" value="${esc(state.ui.search[name] || '')}">`;
 
   function emptyOk(text) { return `<p class="ok-note">✓ ${text}</p>`; }
 
@@ -462,10 +464,10 @@
 
     const multiSeason = data.season.length > 1;
     const riepilogo =
-      (multiSeason ? '<h3>Per stagione</h3>' + T('season', data.season, { totals: true }) : '') +
-      '<h3>Per reparto</h3>' + T('bu', data.bu, { totals: true }) +
-      "<h3>Per numero d'ordine</h3>" + T('po', data.po, { totals: true }) +
-      (data.gender.some(g => g.gender) ? '<h3>Per genere</h3>' + T('gender', data.gender, { totals: true }) : '');
+      (multiSeason ? '<h3>По сезон</h3>' + T('season', data.season, { totals: true }) : '') +
+      '<h3>По отдел</h3>' + T('bu', data.bu, { totals: true }) +
+      '<h3>По номер на поръчка</h3>' + T('po', data.po, { totals: true }) +
+      (data.gender.some(g => g.gender) ? '<h3>По пол</h3>' + T('gender', data.gender, { totals: true }) : '');
 
     const anomalyNote = (rows, txt) => rows.length ? '' : emptyOk(txt);
 
@@ -474,31 +476,31 @@
     let eanRows = data.ean;
     if (state.ui.status && !printing) eanRows = eanRows.filter(r => r.status === state.ui.status);
 
-    const statuses = ['Da consegnare', 'Parziale', 'Completo', 'Eccedenza'];
+    const statuses = ['Предстои доставка', 'Частично', 'Изпълнено', 'Излишък'];
     const counts = Object.fromEntries(statuses.map(s => [s, data.ean.filter(r => r.status === s).length]));
 
     const html = [
-      panel('riepilogo', 'riepilogo', 'Riepilogo', riepilogo),
-      panel('consegne', 'consegne', 'Consegne ricevute', T('shipments', data.shipments, { totals: true })),
-      panel('eccedenze', 'anomalie', 'Consegnato in eccedenza rispetto all\'ordine',
-        anomalyNote(data.excess, 'Nessuna taglia consegnata in quantità superiore all\'ordinato.') + (data.excess.length ? T('excess', data.excess, { totals: true }) : ''),
+      panel('riepilogo', 'riepilogo', 'Обобщение', riepilogo),
+      panel('consegne', 'consegne', 'Получени доставки', T('shipments', data.shipments, { totals: true })),
+      panel('eccedenze', 'anomalie', 'Доставено над поръчаното количество',
+        anomalyNote(data.excess, 'Няма размер, доставен в количество над поръчаното.') + (data.excess.length ? T('excess', data.excess, { totals: true }) : ''),
         data.excess.length ? searchBox('excess') : ''),
-      panel('nonordinato', 'anomalie', 'Consegnato ma non ordinato',
-        anomalyNote(data.nonOrdered, 'Tutti gli EAN consegnati sono presenti nell\'ordine.') + (data.nonOrdered.length ? T('nonOrdered', data.nonOrdered, { totals: true }) : ''),
+      panel('nonordinato', 'anomalie', 'Доставено, но не е поръчано',
+        anomalyNote(data.nonOrdered, 'Всички доставени EAN кодове присъстват в поръчката.') + (data.nonOrdered.length ? T('nonOrdered', data.nonOrdered, { totals: true }) : ''),
         data.nonOrdered.length ? searchBox('nonOrdered') : ''),
-      panel('altrastagione', 'anomalie', 'Consegnato con una stagione diversa da quella ordinata',
-        '<p class="hint">Articoli presenti nell\'ordine ma arrivati con un\'altra stagione: non vengono conteggiati come consegnati sull\'ordine.</p>' +
-        anomalyNote(data.otherSeason, 'Nessun articolo consegnato con una stagione diversa.') + (data.otherSeason.length ? T('otherSeason', data.otherSeason, { totals: true }) : ''),
+      panel('altrastagione', 'anomalie', 'Доставено с различен сезон от поръчания',
+        '<p class="hint">Артикули от поръчката, пристигнали с друг сезон: не се отчитат като доставени по поръчката.</p>' +
+        anomalyNote(data.otherSeason, 'Няма артикули, доставени с различен сезон.') + (data.otherSeason.length ? T('otherSeason', data.otherSeason, { totals: true }) : ''),
         data.otherSeason.length ? searchBox('otherSeason') : ''),
-      panel('differenze', 'anomalie', 'Differenze di prezzo o di numero d\'ordine',
-        anomalyNote(data.differences, 'Prezzi FPC e numeri d\'ordine delle consegne corrispondono all\'ordine.') + (data.differences.length ? T('differences', data.differences) : ''),
+      panel('differenze', 'anomalie', 'Разлики в цената или в номера на поръчката',
+        anomalyNote(data.differences, 'Цените FPC и номерата на поръчките в доставките съвпадат с поръчката.') + (data.differences.length ? T('differences', data.differences) : ''),
         data.differences.length ? searchBox('differences') : ''),
-      panel('articoli', 'articoli', printing ? 'Residuo per articolo' : 'Per articolo',
+      panel('articoli', 'articoli', printing ? 'Остатък по артикул' : 'По артикул',
         T('article', articleRows, Object.assign({ totals: true }, lim)),
-        searchBox('article') + `<label class="chk"><input type="checkbox" id="only-open"${state.ui.onlyOpen ? ' checked' : ''}> Solo articoli con residuo o eccedenza</label>`),
-      panel('ean', 'ean', 'Dettaglio per EAN',
+        searchBox('article') + `<label class="chk"><input type="checkbox" id="only-open"${state.ui.onlyOpen ? ' checked' : ''}> Само артикули с остатък или излишък</label>`),
+      panel('ean', 'ean', 'Детайли по EAN',
         T('ean', eanRows, Object.assign({ totals: true }, lim)),
-        searchBox('ean') + `<select id="status-filter"><option value="">Tutti gli stati (${fInt.format(data.ean.length)})</option>${statuses.map(s => `<option${state.ui.status === s ? ' selected' : ''} value="${s}">${s} (${fInt.format(counts[s])})</option>`).join('')}</select>`),
+        searchBox('ean') + `<select id="status-filter"><option value="">Всички статуси (${fInt.format(data.ean.length)})</option>${statuses.map(s => `<option${state.ui.status === s ? ' selected' : ''} value="${s}">${s} (${fInt.format(counts[s])})</option>`).join('')}</select>`),
     ].join('');
     $('#panels').innerHTML = html;
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.panel === state.tab));
@@ -507,7 +509,7 @@
   function renderSeasonFilter() {
     const seasons = Array.from(new Set(state.result.detail.map(d => d.season).filter(Boolean))).sort();
     if (state.season && !seasons.includes(state.season)) state.season = '';
-    $('#season-filter').innerHTML = `<option value="">Tutte</option>` + seasons.map(s => `<option${s === state.season ? ' selected' : ''}>${esc(s)}</option>`).join('');
+    $('#season-filter').innerHTML = `<option value="">Всички</option>` + seasons.map(s => `<option${s === state.season ? ' selected' : ''}>${esc(s)}</option>`).join('');
     $('#season-filter').parentElement.hidden = seasons.length < 2;
   }
 
@@ -526,7 +528,7 @@
     if (old) old.remove();
     if (state.result.warnings.length) {
       const w = state.result.warnings;
-      message('info', `Attenzione: ${w.length} ${w.length === 1 ? 'riga duplicata' : 'righe duplicate'} nella conferma. ${esc(w.slice(0, 3).join(' '))}${w.length > 3 ? '…' : ''}`);
+      message('info', `Внимание: ${w.length} ${w.length === 1 ? 'дублиран ред' : 'дублирани реда'} в потвърждението. ${esc(w.slice(0, 3).join(' '))}${w.length > 3 ? '…' : ''}`);
       $('#messages').lastElementChild.id = 'dup-warning';
     }
   }
@@ -541,7 +543,7 @@
     const start = aoa.length;
     for (const r of rows) aoa.push(columns.map(c => {
       const v = r[c.key];
-      if (c.type === 'bool') return v ? 'Sì' : '';
+      if (c.type === 'bool') return v ? 'Да' : '';
       if (v === null || v === undefined) return '';
       if (c.key === 'ean' && /^\d+$/.test(String(v))) return String(v);
       if (typeof v === 'number' && ['eur', 'price', 'diff'].includes(c.type)) return E.round2(v);
@@ -565,23 +567,23 @@
     const t = v.t, ov = t.ordered.value || 1;
     const R = E.round2;
     const aoa = [
-      ['Controllo consegne Nike'],
-      ['Ordine', state.order.name],
-      ['Consegne', state.deliveries.filter(d => d.table).map(d => d.name).join(', ')],
-      ['Stagione', state.season || 'Tutte'],
-      ['Generato il', new Date().toLocaleString('it-IT')],
+      ['Контрол на доставките Nike'],
+      ['Поръчка', state.order.name],
+      ['Доставки', state.deliveries.filter(d => d.table).map(d => d.name).join(', ')],
+      ['Сезон', state.season || 'Всички'],
+      ['Създаден на', new Date().toLocaleString('bg-BG')],
       [],
-      ['Voce', 'Pezzi', 'Valore FPC €', '% su ordinato (valore)'],
-      ['Ordinato (confermato)', t.ordered.qty, R(t.ordered.value), 1],
-      ['Consegnato sull\'ordine', t.onOrder.qty, R(t.onOrder.value), t.onOrder.value / ov],
-      ['Residuo da consegnare', t.residual.qty, R(t.residual.value), t.residual.value / ov],
-      ['Consegnato in eccedenza', t.excess.qty, R(t.excess.value), t.excess.value / ov],
-      ['Consegnato NON ordinato', t.nonOrdered.qty, R(t.nonOrdered.value), t.nonOrdered.value / ov],
-      ['Consegnato di altra stagione', t.otherSeason.qty, R(t.otherSeason.value), t.otherSeason.value / ov],
-      ['Totale ricevuto (tutti i file)', t.all.qty, R(t.all.value), t.all.value / ov],
+      ['Показател', 'Бройки', 'Стойност FPC €', '% от поръчаното (стойност)'],
+      ['Поръчано (потвърдено)', t.ordered.qty, R(t.ordered.value), 1],
+      ['Доставено по поръчката', t.onOrder.qty, R(t.onOrder.value), t.onOrder.value / ov],
+      ['Остава за доставка', t.residual.qty, R(t.residual.value), t.residual.value / ov],
+      ['Доставено в излишък', t.excess.qty, R(t.excess.value), t.excess.value / ov],
+      ['Доставено НЕпоръчано', t.nonOrdered.qty, R(t.nonOrdered.value), t.nonOrdered.value / ov],
+      ['Доставено от друг сезон', t.otherSeason.qty, R(t.otherSeason.value), t.otherSeason.value / ov],
+      ['Общо получено (всички файлове)', t.all.qty, R(t.all.value), t.all.value / ov],
     ];
-    if (v.hasNet) aoa.push(['Valore netto fatturato (tutti i file)', '', R(t.all.net), '']);
-    const blocks = [['Per stagione', 'season'], ['Per reparto', 'bu'], ["Per numero d'ordine", 'po'], ['Per genere', 'gender']];
+    if (v.hasNet) aoa.push(['Нетна фактурирана стойност (всички файлове)', '', R(t.all.net), '']);
+    const blocks = [['По сезон', 'season'], ['По отдел', 'bu'], ['По номер на поръчка', 'po'], ['По пол', 'gender']];
     const fmts = [];
     for (let r = 7; r < aoa.length; r++) fmts.push([r, 1, 'int'], [r, 2, 'eur'], [r, 3, 'pct']);
     for (const [title, name] of blocks) {
@@ -608,20 +610,20 @@
     const v = view();
     const data = tableData(v);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, summarySheet(v, data), 'Riepilogo');
+    XLSX.utils.book_append_sheet(wb, summarySheet(v, data), 'Обобщение');
     const add = (title, name, rows) => XLSX.utils.book_append_sheet(wb, sheetFromTable(cols(name, v), sortRows(name, rows)), title);
-    add('Consegne', 'shipments', data.shipments);
-    add('Eccedenze', 'excess', data.excess);
-    add('Non ordinato', 'nonOrdered', data.nonOrdered);
-    add('Altra stagione', 'otherSeason', data.otherSeason);
-    add('Differenze prezzo-ordine', 'differences', data.differences);
-    add('Residuo per articolo', 'article', data.article.filter(a => a.residual > 0 || a.excess > 0));
-    add('Per articolo', 'article', data.article);
-    add('Dettaglio EAN', 'ean', data.ean);
+    add('Доставки', 'shipments', data.shipments);
+    add('Излишъци', 'excess', data.excess);
+    add('Непоръчано', 'nonOrdered', data.nonOrdered);
+    add('Друг сезон', 'otherSeason', data.otherSeason);
+    add('Разлики цена-поръчка', 'differences', data.differences);
+    add('Остатък по артикул', 'article', data.article.filter(a => a.residual > 0 || a.excess > 0));
+    add('По артикул', 'article', data.article);
+    add('Детайли по EAN', 'ean', data.ean);
     const seasons = state.season || Array.from(new Set(v.detail.map(d => d.season).filter(Boolean))).join('-');
     const d = new Date();
     const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    XLSX.writeFile(wb, `controllo_consegne${seasons ? '_' + seasons : ''}_${stamp}.xlsx`);
+    XLSX.writeFile(wb, `kontrol_dostavki${seasons ? '_' + seasons : ''}_${stamp}.xlsx`);
   }
 
   // ---------------------------------------------------------------------------
@@ -632,9 +634,9 @@
   function printMeta() {
     const ds = state.deliveries.filter(d => d.table);
     $('#print-meta').innerHTML =
-      `Ordine: ${esc(state.order.name)}<br>` +
-      `Consegne analizzate (${ds.length}): ${ds.map(d => esc(d.name)).join(', ')}<br>` +
-      `${state.season ? 'Stagione: ' + esc(state.season) + ' · ' : ''}Generato il ${new Date().toLocaleString('it-IT')}. Valori a prezzo FPC netto IVA; abbinamento per EAN e stagione.`;
+      `Поръчка: ${esc(state.order.name)}<br>` +
+      `Анализирани доставки (${ds.length}): ${ds.map(d => esc(d.name)).join(', ')}<br>` +
+      `${state.season ? 'Сезон: ' + esc(state.season) + ' · ' : ''}Създаден на ${new Date().toLocaleString('bg-BG')}. Стойности по цена FPC без ДДС; съпоставяне по EAN и сезон.`;
   }
 
   function startPrint(groups) {
@@ -674,7 +676,7 @@
   function wrap(fn) {
     return async (...args) => {
       try { await fn(...args); }
-      catch (e) { console.error(e); message('error', 'Errore nella lettura del file: ' + esc(e.message || e)); }
+      catch (e) { console.error(e); message('error', 'Грешка при четене на файла: ' + esc(e.message || e)); }
     };
   }
 
@@ -683,7 +685,7 @@
 
   $('#clear-order').onclick = wrap(async () => { if (state.order) await dbDel(state.order.id); state.order = null; refresh(); });
   $('#clear-deliveries').onclick = wrap(async () => {
-    if (!confirm('Rimuovere tutti i file delle consegne?')) return;
+    if (!confirm('Да се премахнат ли всички файлове с доставки?')) return;
     for (const d of state.deliveries) await dbDel(d.id);
     state.deliveries = []; refresh();
   });

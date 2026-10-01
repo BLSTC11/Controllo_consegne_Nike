@@ -14,34 +14,34 @@
   // intestazioni normalizzate (minuscolo, solo lettere/numeri e spazi).
   const ORDER_FIELDS = {
     ean:     { label: 'EAN', required: true, rx: [/^ean upc cd$/, /^ean upc$/, /^ean$/, /\bean\b/, /\bupc\b/, /\bgtin\b/, /barcode/, /codice a barre/] },
-    qty:     { label: 'Quantità confermata', required: true, rx: [/^qty status nnt$/, /\bnnt\b/, /confirm/, /conferm/, /^qty order entry$/, /order entry/, /^qty$/, /^quantity$/, /^quantita$/, /^pcs$/, /\bqty\b(?!.*reject)/] },
-    price:   { label: 'Prezzo FPC', required: true, rx: [/^fpc price in eur w o vat$/, /\bfpc\b/, /wholesale/, /prezzo/, /\bprice\b/] },
-    season:  { label: 'Stagione', rx: [/^season$/, /^stagione$/, /season/, /stagione/] },
-    po:      { label: 'N. ordine (PO)', rx: [/^po name sap$/, /^po name$/, /\bpo\b/, /purchase order/, /ordine/] },
-    bu:      { label: 'Reparto (BU)', rx: [/^bu$/, /business unit/, /division/, /reparto/] },
-    article: { label: 'Articolo', rx: [/^article number$/, /^material$/, /^article$/, /style color/, /^articolo$/, /article n/] },
-    name:    { label: 'Descrizione', rx: [/^article name$/, /^description$/, /^material description$/, /descri/, /name/] },
-    color:   { label: 'Colore', rx: [/^color desc$/, /colou?r/, /colore/] },
-    sizeUS:  { label: 'Taglia US', rx: [/^size us$/, /^size$/, /^us size$/, /^taglia$/] },
-    sizeEU:  { label: 'Taglia EU', rx: [/^eu size$/, /^size eu$/] },
-    gender:  { label: 'Genere', rx: [/^gender$/, /genere/] },
+    qty:     { label: 'Потвърдено количество', required: true, rx: [/^qty status nnt$/, /\bnnt\b/, /confirm/, /conferm/, /^qty order entry$/, /order entry/, /^qty$/, /^quantity$/, /^quantita$/, /^pcs$/, /\bqty\b(?!.*reject)/] },
+    price:   { label: 'Цена FPC', required: true, rx: [/^fpc price in eur w o vat$/, /\bfpc\b/, /wholesale/, /prezzo/, /\bprice\b/] },
+    season:  { label: 'Сезон', rx: [/^season$/, /^stagione$/, /season/, /stagione/] },
+    po:      { label: '№ поръчка (PO)', rx: [/^po name sap$/, /^po name$/, /\bpo\b/, /purchase order/, /ordine/] },
+    bu:      { label: 'Отдел (BU)', rx: [/^bu$/, /business unit/, /division/, /reparto/] },
+    article: { label: 'Артикул', rx: [/^article number$/, /^material$/, /^article$/, /style color/, /^articolo$/, /article n/] },
+    name:    { label: 'Описание', rx: [/^article name$/, /^description$/, /^material description$/, /descri/, /name/] },
+    color:   { label: 'Цвят', rx: [/^color desc$/, /colou?r/, /colore/] },
+    sizeUS:  { label: 'Размер US', rx: [/^size us$/, /^size$/, /^us size$/, /^taglia$/] },
+    sizeEU:  { label: 'Размер EU', rx: [/^eu size$/, /^size eu$/] },
+    gender:  { label: 'Пол', rx: [/^gender$/, /genere/] },
   };
 
   const DELIVERY_FIELDS = {
     ean:      { label: 'EAN', required: true, rx: [/^ean upc cd$/, /^ean upc$/, /^ean$/, /\bean\b/, /\bupc\b/, /\bgtin\b/, /barcode/, /codice a barre/] },
-    qty:      { label: 'Quantità consegnata', required: true, rx: [/^dlv qty$/, /^delivery qty$/, /^qty$/, /^quantity$/, /^quantita$/, /shipped/, /delivered/, /invoiced/, /^pcs$/, /pieces/, /pezzi/, /\bqty\b(?!.*(order|confirm|reject))/, /quant/] },
-    price:    { label: 'Prezzo FPC', rx: [/^fpc price in eur w o vat$/, /\bfpc\b/, /wholesale/, /^price$/, /unit price/, /prezzo/] },
-    netValue: { label: 'Valore netto (totale riga)', rx: [/net value/, /net amount/, /valore netto/, /total net/, /net total/, /^amount$/, /^value$/] },
-    netPrice: { label: 'Prezzo netto unitario', rx: [/net price/, /prezzo netto/] },
-    season:   { label: 'Stagione', rx: [/^season$/, /^stagione$/, /season/, /stagione/] },
-    po:       { label: 'N. ordine (PO)', rx: [/^po name sap$/, /^po name$/, /\bpo\b/, /purchase order/, /customer order/, /ordine/] },
-    truck:    { label: 'Truck', rx: [/truck/, /camion/, /shipment/] },
-    packing:  { label: 'Packing list', rx: [/packing/, /delivery n/, /^delivery$/, /dn number/] },
-    invoice:  { label: 'Fattura', rx: [/invoice n/, /^invoice$/, /fattura/] },
-    article:  { label: 'Articolo', rx: [/^article number$/, /^material$/, /^article$/, /style color/, /^articolo$/, /article n/, /material n/] },
-    name:     { label: 'Descrizione', rx: [/^article name$/, /^description$/, /^material description$/, /descri/, /name/] },
-    size:     { label: 'Taglia', rx: [/^size us$/, /^size$/, /^us size$/, /^taglia$/, /size/] },
-    bu:       { label: 'Reparto (BU)', rx: [/^bu$/, /business unit/, /division/, /reparto/] },
+    qty:      { label: 'Доставено количество', required: true, rx: [/^dlv qty$/, /^delivery qty$/, /^qty$/, /^quantity$/, /^quantita$/, /shipped/, /delivered/, /invoiced/, /^pcs$/, /pieces/, /pezzi/, /\bqty\b(?!.*(order|confirm|reject))/, /quant/] },
+    price:    { label: 'Цена FPC', rx: [/^fpc price in eur w o vat$/, /\bfpc\b/, /wholesale/, /^price$/, /unit price/, /prezzo/] },
+    netValue: { label: 'Нетна стойност (общо за реда)', rx: [/net value/, /net amount/, /valore netto/, /total net/, /net total/, /^amount$/, /^value$/] },
+    netPrice: { label: 'Нетна единична цена', rx: [/net price/, /prezzo netto/] },
+    season:   { label: 'Сезон', rx: [/^season$/, /^stagione$/, /season/, /stagione/] },
+    po:       { label: '№ поръчка (PO)', rx: [/^po name sap$/, /^po name$/, /\bpo\b/, /purchase order/, /customer order/, /ordine/] },
+    truck:    { label: 'Камион (Truck)', rx: [/truck/, /camion/, /shipment/] },
+    packing:  { label: 'Опаковъчен лист', rx: [/packing/, /delivery n/, /^delivery$/, /dn number/] },
+    invoice:  { label: 'Фактура', rx: [/invoice n/, /^invoice$/, /fattura/] },
+    article:  { label: 'Артикул', rx: [/^article number$/, /^material$/, /^article$/, /style color/, /^articolo$/, /article n/, /material n/] },
+    name:     { label: 'Описание', rx: [/^article name$/, /^description$/, /^material description$/, /descri/, /name/] },
+    size:     { label: 'Размер', rx: [/^size us$/, /^size$/, /^us size$/, /^taglia$/, /size/] },
+    bu:       { label: 'Отдел (BU)', rx: [/^bu$/, /business unit/, /division/, /reparto/] },
   };
 
   function normHeader(h) {
@@ -268,7 +268,7 @@
         // Stesso EAN su più righe dell'ordine: si sommano le quantità.
         ex.qty += o.qty;
         if (ex.po !== o.po && !ex.poList.includes(o.po)) ex.poList.push(o.po);
-        warnings.push(`EAN ${o.ean} presente più volte nella conferma (righe ${ex.row} e ${o.row}): quantità sommate.`);
+        warnings.push(`EAN ${o.ean} се среща няколко пъти в потвърждението (редове ${ex.row} и ${o.row}): количествата са сумирани.`);
         continue;
       }
       byKey.set(o.key, Object.assign({}, o, {
@@ -338,10 +338,10 @@
       const residual = Math.max(o.qty - o.delivered, 0);
       const excess = Math.max(o.delivered - o.qty, 0);
       let status;
-      if (o.delivered <= 0) status = 'Da consegnare';
-      else if (excess > 0) status = 'Eccedenza';
-      else if (residual > 0) status = 'Parziale';
-      else status = 'Completo';
+      if (o.delivered <= 0) status = 'Предстои доставка';
+      else if (excess > 0) status = 'Излишък';
+      else if (residual > 0) status = 'Частично';
+      else status = 'Изпълнено';
       const delPrices = Array.from(o.delPrices);
       const priceDiff = delPrices.length ? round2(delPrices.reduce((m, p) => (Math.abs(p - o.price) > Math.abs(m) ? p - o.price : m), 0)) : null;
       const delPOs = Array.from(o.delPOs);

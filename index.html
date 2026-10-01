@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="it">
+<html lang="bg">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Controllo consegne Nike</title>
+  <title>Контрол на доставките Nike</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%23111%22/%3E%3Cpath d=%22M8 17l5 5 11-12%22 stroke=%22%23fff%22 stroke-width=%223.5%22 fill=%22none%22/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -11,12 +11,12 @@
   <header class="topbar">
     <div class="wrap topbar-inner">
       <div>
-        <h1>Controllo consegne Nike</h1>
-        <p class="sub">Ordine stagionale confermato a confronto con tutte le consegne della stagione</p>
+        <h1>Контрол на доставките Nike</h1>
+        <p class="sub">Потвърдената сезонна поръчка, сравнена с всички доставки през сезона</p>
       </div>
       <div class="actions no-print">
-        <button id="btn-excel" class="btn" disabled>Esporta Excel</button>
-        <button id="btn-print" class="btn" disabled>Stampa / PDF</button>
+        <button id="btn-excel" class="btn" disabled>Експорт в Excel</button>
+        <button id="btn-print" class="btn" disabled>Печат / PDF</button>
       </div>
     </div>
   </header>
@@ -24,39 +24,39 @@
   <main class="wrap">
     <!-- Intestazione visibile solo in stampa -->
     <section class="print-only print-head">
-      <h1>Controllo consegne Nike</h1>
+      <h1>Контрол на доставките Nike</h1>
       <p id="print-meta"></p>
     </section>
 
     <section class="uploads no-print">
       <div class="card">
         <div class="card-head">
-          <h2><span class="step">1</span> Conferma ordine stagionale</h2>
-          <button class="link" id="clear-order" hidden>Rimuovi</button>
+          <h2><span class="step">1</span> Потвърждение на сезонната поръчка</h2>
+          <button class="link" id="clear-order" hidden>Премахни</button>
         </div>
         <label class="drop" id="drop-order">
           <input type="file" id="file-order" accept=".xlsx,.xls,.xlsm,.csv">
-          <span class="drop-text"><strong>Trascina qui il file di conferma</strong> oppure clicca per sceglierlo</span>
-          <span class="drop-hint">Es. "Happy Sport - Nike FA26 - Confirmation.xlsx"</span>
+          <span class="drop-text"><strong>Пуснете тук файла с потвърждението</strong> или щракнете, за да го изберете</span>
+          <span class="drop-hint">Напр. "Happy Sport - Nike FA26 - Confirmation.xlsx"</span>
         </label>
         <div id="order-info"></div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <h2><span class="step">2</span> File delle consegne</h2>
-          <button class="link" id="clear-deliveries" hidden>Rimuovi tutti</button>
+          <h2><span class="step">2</span> Файлове с доставки</h2>
+          <button class="link" id="clear-deliveries" hidden>Премахни всички</button>
         </div>
         <label class="drop" id="drop-deliveries">
           <input type="file" id="file-deliveries" accept=".xlsx,.xls,.xlsm,.csv" multiple>
-          <span class="drop-text"><strong>Trascina qui uno o più file di consegna</strong> oppure clicca per sceglierli</span>
-          <span class="drop-hint">Puoi aggiungerne altri in qualsiasi momento: il conto si aggiorna su tutte le consegne insieme</span>
+          <span class="drop-text"><strong>Пуснете тук един или няколко файла с доставки</strong> или щракнете, за да ги изберете</span>
+          <span class="drop-hint">Можете да добавяте още по всяко време: сметката се преизчислява за всички доставки заедно</span>
         </label>
         <div id="delivery-list"></div>
       </div>
     </section>
 
-    <p class="privacy no-print">I file vengono letti solo nel tuo browser e non vengono inviati a nessun server. Restano memorizzati su questo computer finché non li rimuovi, così la prossima volta basta aggiungere le nuove consegne.</p>
+    <p class="privacy no-print">Файловете се четат само във вашия браузър и не се изпращат към никакъв сървър. Остават запазени на този компютър, докато не ги премахнете, така че следващия път е достатъчно да добавите новите доставки.</p>
 
     <div id="messages" class="no-print"></div>
 
@@ -65,7 +65,7 @@
 
       <div class="toolbar no-print">
         <nav class="tabs" id="tabs" role="tablist"></nav>
-        <label class="season-filter">Stagione
+        <label class="season-filter">Сезон
           <select id="season-filter"></select>
         </label>
       </div>
@@ -74,22 +74,22 @@
     </section>
 
     <section id="empty" class="empty no-print">
-      <p>Carica il file di conferma e almeno un file di consegna per vedere i risultati.</p>
+      <p>Заредете файла с потвърждението и поне един файл с доставка, за да видите резултатите.</p>
     </section>
   </main>
 
   <dialog id="print-dialog" class="no-print">
     <form method="dialog">
-      <h3>Stampa / salva in PDF</h3>
-      <p>Scegli cosa includere. Per il PDF, nella finestra di stampa scegli "Salva come PDF".</p>
-      <label><input type="checkbox" name="sec" value="riepilogo" checked> Riepilogo per stagione, reparto e ordine</label>
-      <label><input type="checkbox" name="sec" value="consegne" checked> Consegne</label>
-      <label><input type="checkbox" name="sec" value="anomalie" checked> Eccedenze, non ordinato, altra stagione, differenze</label>
-      <label><input type="checkbox" name="sec" value="articoli" checked> Residuo per articolo</label>
-      <label><input type="checkbox" name="sec" value="ean"> Dettaglio per EAN (molte pagine)</label>
+      <h3>Печат / запис като PDF</h3>
+      <p>Изберете какво да се включи. За PDF в прозореца за печат изберете "Запиши като PDF".</p>
+      <label><input type="checkbox" name="sec" value="riepilogo" checked> Обобщение по сезон, отдел и поръчка</label>
+      <label><input type="checkbox" name="sec" value="consegne" checked> Доставки</label>
+      <label><input type="checkbox" name="sec" value="anomalie" checked> Излишъци, непоръчано, друг сезон, разлики</label>
+      <label><input type="checkbox" name="sec" value="articoli" checked> Остатък по артикул</label>
+      <label><input type="checkbox" name="sec" value="ean"> Детайли по EAN (много страници)</label>
       <div class="dialog-actions">
-        <button value="cancel" class="btn btn-ghost">Annulla</button>
-        <button value="print" class="btn" id="do-print">Stampa</button>
+        <button value="cancel" class="btn btn-ghost">Отказ</button>
+        <button value="print" class="btn" id="do-print">Печат</button>
       </div>
     </form>
   </dialog>

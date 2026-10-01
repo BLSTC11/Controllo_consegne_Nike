@@ -1,6 +1,6 @@
 # Controllo consegne Nike · v1.0
 
-Interfaccia web per confrontare la **conferma d'ordine stagionale** con tutti i **file delle consegne** ricevuti durante la stagione.
+Interfaccia web (in lingua bulgara) per confrontare la **conferma d'ordine stagionale** con tutti i **file delle consegne** ricevuti durante la stagione.
 
 I file vengono letti solo nel browser: non vengono caricati su nessun server. Restano memorizzati nel browser di quel computer finché non li rimuovi, così la volta successiva basta aggiungere le nuove consegne.
 
