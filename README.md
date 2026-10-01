@@ -1,4 +1,4 @@
-# Controllo consegne Nike
+# Controllo consegne Nike · v1.0
 
 Interfaccia web per confrontare la **conferma d'ordine stagionale** con tutti i **file delle consegne** ricevuti durante la stagione.
 
@@ -35,7 +35,7 @@ I codici stagione vengono uniformati: `FA26`, `FA 2026` e il codice numerico Nik
 Le colonne vengono riconosciute dal nome dell'intestazione (anche se non è nella prima riga). Sotto ogni file, in "Colonne riconosciute", puoi vedere e correggere quale colonna è usata per ogni dato; la scelta viene ricordata.
 
 - **Conferma**: EAN UPC Cd, Qty status NNT, FPC Price IN EUR w/o VAT, Season, PO name SAP, BU, Article Number, Article Name, Color Desc, Size US, EU Size, Gender.
-- **Consegne**: EAN, quantità, stagione, prezzo FPC, valore o prezzo netto, Po name, Truck, Packing list, articolo, descrizione, taglia.
+- **Consegne** (es. Barcode, Dlv.qty, FPC Price w/o VAT in EUR, Net value, Season, Po name, Truck, Packing List, Material, Material description, Size, Division): EAN, quantità, stagione, prezzo FPC, valore o prezzo netto, Po name, Truck, Packing list, articolo, descrizione, taglia.
 
 ## Pubblicazione
 
@@ -44,9 +44,14 @@ Le colonne vengono riconosciute dal nome dell'intestazione (anche se non è nell
 - **In locale**: apri `index.html` con il browser (funziona anche offline, la libreria Excel è inclusa in `vendor/`).
 - **GitHub Pages**: nel repository, Settings › Pages › "Deploy from a branch", ramo `main`, cartella `/ (root)`. La pagina sarà su `https://blstc11.github.io/controllo_consegne_nike/`.
 
+## Script locale
+
+In `script_locale/` c'è anche uno script Python per macOS che fa lo stesso controllo partendo dalle cartelle `ordini_confermati/` e `consegne/` e scrive Excel e PDF in `output/`. Istruzioni in [script_locale/README.md](script_locale/README.md).
+
 ## Struttura
 
 - `index.html`, `css/style.css`: interfaccia
 - `js/engine.js`: lettura dei file, riconoscimento colonne e confronto
 - `js/app.js`: caricamento, tabelle, export Excel, stampa
+- `script_locale/`: script Python per macOS
 - `vendor/xlsx.full.min.js`: [SheetJS](https://sheetjs.com) 0.18.5 (licenza Apache 2.0, `vendor/xlsx.LICENSE`)

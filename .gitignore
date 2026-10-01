@@ -1,0 +1,9 @@
+# Dati di ordini e consegne: non vanno nel repository
+*.xlsx
+*.xls
+*.pdf
+ordini_confermati/
+consegne/
+output/
+.DS_Store
+__pycache__/

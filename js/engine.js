@@ -29,7 +29,7 @@
 
   const DELIVERY_FIELDS = {
     ean:      { label: 'EAN', required: true, rx: [/^ean upc cd$/, /^ean upc$/, /^ean$/, /\bean\b/, /\bupc\b/, /\bgtin\b/, /barcode/, /codice a barre/] },
-    qty:      { label: 'Quantità consegnata', required: true, rx: [/^qty$/, /^quantity$/, /^quantita$/, /shipped/, /delivered/, /invoiced/, /^pcs$/, /pieces/, /pezzi/, /\bqty\b(?!.*(order|confirm|reject))/, /quant/] },
+    qty:      { label: 'Quantità consegnata', required: true, rx: [/^dlv qty$/, /^delivery qty$/, /^qty$/, /^quantity$/, /^quantita$/, /shipped/, /delivered/, /invoiced/, /^pcs$/, /pieces/, /pezzi/, /\bqty\b(?!.*(order|confirm|reject))/, /quant/] },
     price:    { label: 'Prezzo FPC', rx: [/^fpc price in eur w o vat$/, /\bfpc\b/, /wholesale/, /^price$/, /unit price/, /prezzo/] },
     netValue: { label: 'Valore netto (totale riga)', rx: [/net value/, /net amount/, /valore netto/, /total net/, /net total/, /^amount$/, /^value$/] },
     netPrice: { label: 'Prezzo netto unitario', rx: [/net price/, /prezzo netto/] },
